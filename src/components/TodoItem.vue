@@ -1,7 +1,7 @@
 <template>
   <ul id="myUL">
     <template  v-if="todos.length == 0">
-      <li>TodoList를 등록하세요.</li>
+      <li>TodoList를 등록하세요!</li>
     </template>
     <template v-else>
       <li v-for="(item, index) in todos" :key="item.id" v-bind:class="{checked : item.isChecked}">
