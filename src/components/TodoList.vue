@@ -3,7 +3,7 @@
     <div class="header">
       <h2>My To Do List</h2>    
       <p>
-        <input v-model="text" placeholder="할 일을 입력하세요.">
+        <input v-model="text" placeholder="할 일을 입력하세요..">
         <button class="addBtn" v-on:click="addTodo">click</button>
       </p>
     </div>
