@@ -54,6 +54,7 @@
         console.log(this.orgInfoList);
         // JSON.parse(JSON.stringify( temp1.orgInfoList ))
         // _.pullAllBy(temp1.orgInfoList, [{'orgLevel': 3 },{'orgLevel': 4 },{'orgLevel': 2 },{'orgLevel': 1 },{'orgLevel': 0 },{'orgLevel': 5 }], 'orgLevel');
+        //https://stackoverflow.com/questions/32134115/creating-a-tree-from-a-flat-list-using-lodash
        }).catch((ex)=> {
         console.log("ERR!!!!!!! : ", ex)
         console.log(_.compact([0,1,true,2,'',3]));
