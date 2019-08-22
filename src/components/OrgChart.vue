@@ -64,9 +64,10 @@
       axios.get(`http://192.168.165.15:10080/api/orginfo/member/list/OSSTEM/0000`)
       .then((result) => {
         this.data = result.data;
-        this.orgInfoList = { '오스템' : makeCatTree(result.data.orgInfoList)};
+        this.orgInfoList = makeCatTree(result.data.orgInfoList);
         this.orgMemberInfoList = { orgMemberInfoList : result.data.orgMemberInfoList};
-
+        console.log(result.data.orgInfoList);
+        console.log(result.data.orgMemberInfoList);
        }).catch((ex)=> {
         console.log("ERR!!!!!!! : ", ex)
         console.log(_.compact([0,1,true,2,'',3]));
@@ -77,25 +78,25 @@
   }
 
   function makeCatTree(result) {
-    console.log("---");
     var groupedByParents = _.groupBy(result, 'orgUpperCd');
     var catsById = _.keyBy(result, 'orgCd');
-    console.log(groupedByParents);
-    _.each(_.omit(groupedByParents, '0000'), function(children, parentId) {
+    _.each(_.omit(groupedByParents, '0'), function(children, parentId) {
       if (catsById[parentId] != null){
-        catsById[parentId].children = children; 
+        _.each(children,function(obj){
+          catsById[parentId][obj.orgName] =  obj; 
+          // catsById[parentId][obj.orgName] =  _.omit(obj, ['orgName','orgCd','orgUpperCd','orgLevel','seq']); 
+        });
       }
     });
     _.each(catsById, function(cat) {
-      // isParent will be true when there are subcategories (this is not really a good name, btw.)
-      cat.isParent = !_.isEmpty(cat.children); 
-      // _.compact below is just for removing null posts
-      cat.children = _.compact(_.union(cat.children, cat.posts));
-      // optionally, you can also delete cat.posts here.
+      // // isParent will be true when there are subcategories (this is not really a good name, btw.)
+      // cat.isParent = !_.isEmpty(cat.children); 
+      // // _.compact below is just for removing null posts
+      // cat.children = _.compact(_.union(cat.children, cat.posts));
+      // // optionally, you can also delete cat.posts here.
     });
-    console.log(groupedByParents['0000']);
-    console.log("---");
-    return groupedByParents['0000'];
+    console.log(groupedByParents['0']);
+    return _.omit(groupedByParents['0'], ['orgCd','orgUpperCd','orgLevel','seq']);
   }
 </script>
 
