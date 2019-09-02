@@ -2,7 +2,7 @@
   <div>
     <json-view 
     :data="orgInfoList"
-    rootKey="view"
+    rootKey="오스템임플란트"
     :maxDepth="1"
     :styles="{ key: '#0977e6' }"
      />
@@ -64,10 +64,9 @@
       axios.get(`http://192.168.165.15:10080/api/orginfo/member/list/OSSTEM/0000`)
       .then((result) => {
         this.data = result.data;
-        this.orgInfoList = makeCatTree(result.data.orgInfoList);
+        this.orgInfoList = makeTree(result.data);
         this.orgMemberInfoList = { orgMemberInfoList : result.data.orgMemberInfoList};
-        console.log(result.data.orgInfoList);
-        console.log(result.data.orgMemberInfoList);
+        console.log(this.orgInfoList);
        }).catch((ex)=> {
         console.log("ERR!!!!!!! : ", ex)
         console.log(_.compact([0,1,true,2,'',3]));
@@ -77,26 +76,31 @@
     
   }
 
-  function makeCatTree(result) {
-    var groupedByParents = _.groupBy(result, 'orgUpperCd');
-    var catsById = _.keyBy(result, 'orgCd');
-    _.each(_.omit(groupedByParents, '0'), function(children, parentId) {
-      if (catsById[parentId] != null){
+  function makeTree(data) {
+    var orgInfoList = data.orgInfoList;
+    var orgMemberInfoList = data.orgMemberInfoList;
+
+    var groupedByParents = _.groupBy(orgInfoList, 'orgUpperCd');
+    var catsByIdOrg = _.keyBy(orgInfoList, 'orgCd');
+    var catsByIdMem = _.keyBy(orgMemberInfoList, 'orgCd');
+
+    _.each(_.omit(groupedByParents, '0000'), function(children, parentId) {
+      if (catsByIdOrg[parentId] != null){
         _.each(children,function(obj){
-          catsById[parentId][obj.orgName] =  obj; 
-          // catsById[parentId][obj.orgName] =  _.omit(obj, ['orgName','orgCd','orgUpperCd','orgLevel','seq']); 
+          catsByIdOrg[parentId][obj.orgName] =  obj; 
         });
+
       }
     });
-    _.each(catsById, function(cat) {
-      // // isParent will be true when there are subcategories (this is not really a good name, btw.)
-      // cat.isParent = !_.isEmpty(cat.children); 
-      // // _.compact below is just for removing null posts
-      // cat.children = _.compact(_.union(cat.children, cat.posts));
-      // // optionally, you can also delete cat.posts here.
+    _.each(catsByIdOrg, function(cat) {
+      var catFind = _.find(catsByIdMem, {orgCd:cat.orgCd});
+      
+      if(catFind != undefined){
+        cat[catFind.name] = catFind.jikgubName;
+      }
+
     });
-    console.log(groupedByParents['0']);
-    return _.omit(groupedByParents['0'], ['orgCd','orgUpperCd','orgLevel','seq']);
+    return _.omit(groupedByParents['0000'], ['orgCd','orgUpperCd','orgLevel','seq']);
   }
 </script>
 
