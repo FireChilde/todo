@@ -2,7 +2,7 @@
   <div>
     <json-view 
     :data="orgInfoList"
-    rootKey="오스템임플란트"
+    rootKey="오스템임플란트(주)"
     :maxDepth="1"
     :styles="{ key: '#0977e6' }"
      />
@@ -21,51 +21,16 @@
     data() {
       return {
         orgInfoList: {},
-        orgMemberInfoList: {
-          first: "level",
-          works: true,
-          object: {
-            working: "properly"
-          },
-          number: 100,
-          missing: null,
-          list: [
-            "fun",
-            {
-              test: {
-                passed: true
-              }
-            }
-          ]
-         
-        },
-        data:{first : 'jk'},
-        test:{
-          first: "level",
-          works: true,
-          object: {
-            working: "properly"
-          },
-          number: 100,
-          missing: null,
-          list: [
-            "fun",
-            {
-              test: {
-                passed: true
-              }
-            }
-          ]
-         
-        }
-    }
+        data:{}
+      }
     },
     created () {
       axios.get(`http://192.168.165.15:10080/api/orginfo/member/list/OSSTEM/0000`)
       .then((result) => {
+        console.log(result);
         this.data = result.data;
         this.orgInfoList = makeTree(result.data);
-        this.orgMemberInfoList = { orgMemberInfoList : result.data.orgMemberInfoList};
+        
         console.log(this.orgInfoList);
        }).catch((ex)=> {
         console.log("ERR!!!!!!! : ", ex)
@@ -81,26 +46,44 @@
     var orgMemberInfoList = data.orgMemberInfoList;
 
     var groupedByParents = _.groupBy(orgInfoList, 'orgUpperCd');
+    var groupedByIdMem = _.groupBy(orgMemberInfoList, 'orgCd');
     var catsByIdOrg = _.keyBy(orgInfoList, 'orgCd');
-    var catsByIdMem = _.keyBy(orgMemberInfoList, 'orgCd');
 
-    _.each(_.omit(groupedByParents, '0000'), function(children, parentId) {
+    _.each(groupedByIdMem, function(children, parentId) {
+      if (catsByIdOrg[parentId] != null){
+        _.each(groupedByIdMem[parentId],function(val){
+            catsByIdOrg[parentId][val.name] = val.jikgubName;
+          })
+      }
+    });
+    _.each(_.omit(groupedByParents, '0'), function(children, parentId) {
       if (catsByIdOrg[parentId] != null){
         _.each(children,function(obj){
-          catsByIdOrg[parentId][obj.orgName] =  obj; 
+          catsByIdOrg[parentId][obj.orgName] =  _.omit(obj, ['orgCd','orgUpperCd','orgName','orgLevel','seq']); 
         });
 
       }
     });
-    _.each(catsByIdOrg, function(cat) {
-      var catFind = _.find(catsByIdMem, {orgCd:cat.orgCd});
-      
-      if(catFind != undefined){
-        cat[catFind.name] = catFind.jikgubName;
-      }
 
+    return _.omit(groupedByParents['0'][0], ['orgName','orgCd','orgUpperCd','orgLevel','seq']);
+  }
+
+  function makeTree2(data) {
+    var orgInfoList = data.orgInfoList;
+    var orgMemberInfoList = data.orgMemberInfoList;
+
+    var catsByIdOrg = _.keyBy(orgInfoList, 'orgCd');
+
+    _.each(catsByIdOrg, function(val, idx){
+      _.each(_.filter(orgInfoList, {'orgUpperCd' :idx}), function(val2){
+        val[val2.orgName] = val2;
+      });
+      _.each(_.filter(orgMemberInfoList, {'orgCd' :idx}), function(val2){
+        val[val2.name] = val2.jikgubName;
+      });
     });
-    return _.omit(groupedByParents['0000'], ['orgCd','orgUpperCd','orgLevel','seq']);
+
+    return catsByIdOrg['0000'];
   }
 </script>
 
