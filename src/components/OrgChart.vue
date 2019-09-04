@@ -1,11 +1,10 @@
 <template>
   <div>
     <json-view 
-    :data="orgInfoList"
-    rootKey="오스템임플란트(주)"
-    :maxDepth="1"
-    :styles="{ key: '#0977e6' }"
-     />
+    :data="orgInfoList" 
+    rootKey="오스템임플란트(주)" 
+    :maxDepth="1" 
+    :styles="{ key: '#0977e6' }"/>
   </div>
 </template>
 
@@ -50,24 +49,25 @@
     var catsByIdOrg = _.keyBy(orgInfoList, 'orgCd');
 
     _.each(groupedByIdMem, function(children, parentId) {
-      if (catsByIdOrg[parentId] != null){
-        _.each(groupedByIdMem[parentId],function(val){
+      if (catsByIdOrg[parentId] !== undefined){
+        _.each(groupedByIdMem[parentId], function(val){
             catsByIdOrg[parentId][val.name] = val.jikgubName;
           })
       }
     });
     _.each(_.omit(groupedByParents, '0'), function(children, parentId) {
-      if (catsByIdOrg[parentId] != null){
-        _.each(children,function(obj){
-          catsByIdOrg[parentId][obj.orgName] =  _.omit(obj, ['orgCd','orgUpperCd','orgName','orgLevel','seq']); 
+      if (catsByIdOrg[parentId] !== undefined){
+        _.each(children, function(obj){
+          catsByIdOrg[parentId][obj.orgName] = _.omit(obj, ['orgCd', 'orgUpperCd', 'orgName', 'orgLevel', 'seq']); 
         });
 
       }
     });
 
-    return _.omit(groupedByParents['0'][0], ['orgName','orgCd','orgUpperCd','orgLevel','seq']);
+    return _.omit(groupedByParents['0'][0], ['orgName', 'orgCd', 'orgUpperCd', 'orgLevel', 'seq']);
   }
 
+  /* eslint-disable */
   function makeTree2(data) {
     var orgInfoList = data.orgInfoList;
     var orgMemberInfoList = data.orgMemberInfoList;
