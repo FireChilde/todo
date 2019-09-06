@@ -1,5 +1,6 @@
 <template>
   <div>
+     <!-- <vue-js :data="orgInfoList" multiple allow-batch whole-row @item-click="itemClick"></vue-js> -->
     <json-view 
     :data="orgInfoList" 
     rootKey="오스템임플란트(주)" 
@@ -12,25 +13,31 @@
   import axios from 'axios'
   import _ from 'lodash'
   import { JSONView } from "vue-json-component";
+  import VueJs from 'vue-jstree';
 
   export default {
     components: {
-        "json-view": JSONView 
+        "vue-js": VueJs,
+        "json-view": JSONView
     },
     data() {
       return {
         orgInfoList: {},
-        data:{}
+        data: []
       }
     },
+    methods: {
+        itemClick (node) {
+          console.log(node.model.text + ' clicked !')
+        }
+      },
     created () {
       axios.get(`http://192.168.165.15:10080/api/orginfo/member/list/OSSTEM/0000`)
       .then((result) => {
         console.log(result);
-        this.data = result.data;
+        // this.data = result.data;
         this.orgInfoList = makeTree(result.data);
         
-        console.log(this.orgInfoList);
        }).catch((ex)=> {
         console.log("ERR!!!!!!! : ", ex)
         console.log(_.compact([0,1,true,2,'',3]));
@@ -40,14 +47,15 @@
     
   }
 
+  /* eslint-disable */
   function makeTree(data) {
     var orgInfoList = data.orgInfoList;
     var orgMemberInfoList = data.orgMemberInfoList;
 
-    var groupedByParents = _.groupBy(orgInfoList, 'orgUpperCd');
+    var groupedByOrg = _.groupBy(orgInfoList, 'orgUpperCd');
     var groupedByIdMem = _.groupBy(orgMemberInfoList, 'orgCd');
     var catsByIdOrg = _.keyBy(orgInfoList, 'orgCd');
-
+console.log(catsByIdOrg);
     _.each(groupedByIdMem, function(children, parentId) {
       if (catsByIdOrg[parentId] !== undefined){
         _.each(groupedByIdMem[parentId], function(val){
@@ -55,16 +63,30 @@
           })
       }
     });
-    _.each(_.omit(groupedByParents, '0'), function(children, parentId) {
+    console.log(groupedByOrg);
+    _.each(groupedByOrg, function(children, parentId) {
       if (catsByIdOrg[parentId] !== undefined){
         _.each(children, function(obj){
+          // catsByIdOrg[parentId][obj.orgName] = obj; 
           catsByIdOrg[parentId][obj.orgName] = _.omit(obj, ['orgCd', 'orgUpperCd', 'orgName', 'orgLevel', 'seq']); 
-        });
+          console.log(_.omit(obj, ['orgCd', 'orgUpperCd', 'orgName', 'orgLevel', 'seq']));
+          if('경영기획1팀' ==obj.orgName ){
+            console.log(catsByIdOrg[parentId][obj.orgName]);
+            
+            console.log(parentId + '  ' +obj.orgName);
 
+          }
+        if(parentId== "O000000841"){
+          console.log(catsByIdOrg[parentId][obj.orgName]);
+          
+          console.log(obj.orgName);
+          
+        }
+        });
       }
     });
 
-    return _.omit(groupedByParents['0'][0], ['orgName', 'orgCd', 'orgUpperCd', 'orgLevel', 'seq']);
+    return _.omit(groupedByOrg['0'][0], ['orgName', 'orgCd', 'orgUpperCd', 'orgLevel', 'seq']);
   }
 
   /* eslint-disable */
@@ -72,19 +94,21 @@
     var orgInfoList = data.orgInfoList;
     var orgMemberInfoList = data.orgMemberInfoList;
 
-    var catsByIdOrg = _.keyBy(orgInfoList, 'orgCd');
+    _.each(orgInfoList, function(val, idx){
+      var filterOrg = _.filter(orgInfoList, {'orgUpperCd' :val.orgCd});
+      var filterMem = _.filter(orgMemberInfoList, {'orgCd' :val.orgCd});
 
-    _.each(catsByIdOrg, function(val, idx){
-      _.each(_.filter(orgInfoList, {'orgUpperCd' :idx}), function(val2){
-        val[val2.orgName] = val2;
+      _.each(filterMem, function(val2){
+        val2.text = val2.name + '(' + val2.jikgubName + ')';
       });
-      _.each(_.filter(orgMemberInfoList, {'orgCd' :idx}), function(val2){
-        val[val2.name] = val2.jikgubName;
-      });
+
+      val.text = val.orgName;
+      val.opened = false;
+      val.children = _.concat(filterMem, filterOrg);
     });
-
-    return catsByIdOrg['0000'];
+    return [_.omit(_.find(orgInfoList, {'orgCd' : '0000'}), ['orgName', 'orgCd', 'orgUpperCd', 'orgLevel', 'seq'])];
   }
+
 </script>
 
 <style lang="scss" scoped>
